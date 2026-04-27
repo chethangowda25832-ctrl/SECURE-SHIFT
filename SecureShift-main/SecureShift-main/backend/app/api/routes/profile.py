@@ -26,24 +26,13 @@ def _get_user_id(x_user_id: Optional[str]) -> str:
 
 
 def _ensure_user_row(user_id: str) -> dict:
-    """
-    Get the user row, creating a minimal one if it doesn't exist yet.
-    Supabase Auth creates auth.users but our public.users trigger may not
-    have fired (e.g. during development / first login).
-    """
+    """Get the user row, creating a minimal stub if it doesn't exist yet."""
     user = db.get_user_by_id(user_id)
     if user:
         return user
-
     logger.info(f"[profile] Creating missing user row for {user_id}")
-    # Pull email from Supabase Auth admin API via service role
-    try:
-        auth_res = db.client.auth.admin.get_user_by_id(user_id)
-        email = auth_res.user.email if auth_res.user else f"{user_id}@unknown"
-    except Exception:
-        email = f"{user_id}@unknown"
-
-    created = db.create_user({"id": user_id, "email": email, "name": email.split("@")[0]})
+    email = f"user_{user_id[:8]}@placeholder.local"
+    created = db.create_user({"id": user_id, "email": email, "name": "User"})
     return created or {"id": user_id, "email": email}
 
 
@@ -124,30 +113,24 @@ def update_profile(request: Request, body: ProfileUpdate, x_user_id: Optional[st
 # ── Settings ──────────────────────────────────────────────────────────────────
 
 def _get_or_create_settings(user_id: str) -> dict:
-    """Get settings row, creating defaults if missing. Ensures user row exists first."""
-    _ensure_user_row(user_id)  # FK guard
-    res = db.client.table("user_settings").select("*").eq("user_id", user_id).execute()
-    if res.data:
-        return res.data[0]
-    row = db.client.table("user_settings").insert({"user_id": user_id}).execute()
-    return row.data[0] if row.data else {}
+    """Get settings from users table, creating user row if missing."""
+    user = _ensure_user_row(user_id)
+    return user
 
 
 @router.get("/settings", response_model=SettingsResponse)
 def get_settings(request: Request, x_user_id: Optional[str] = Header(None)):
     logger.info(f"[profile] GET /settings  user={x_user_id}")
     user_id = _get_user_id(x_user_id)
-    s = _get_or_create_settings(user_id)
-    user = db.get_user_by_id(user_id) or {}
-
+    user = _ensure_user_row(user_id)
     return SettingsResponse(
-        theme=s.get("theme", "dark"),
-        notify_scan_complete=s.get("notify_scan_complete", True),
-        notify_critical_vuln=s.get("notify_critical_vuln", True),
-        notify_pr_created=s.get("notify_pr_created", True),
+        theme=user.get("theme", "dark"),
+        notify_scan_complete=user.get("notify_scan_complete", True),
+        notify_critical_vuln=user.get("notify_critical_vuln", True),
+        notify_pr_created=user.get("notify_pr_created", True),
         github_token_set=bool(user.get("github_token")),
-        nvd_api_key_set=bool(s.get("nvd_api_key")),
-        openrouter_api_key_set=bool(s.get("openrouter_api_key")),
+        nvd_api_key_set=False,
+        openrouter_api_key_set=False,
     )
 
 
@@ -155,23 +138,13 @@ def get_settings(request: Request, x_user_id: Optional[str] = Header(None)):
 def update_settings(request: Request, body: SettingsUpdate, x_user_id: Optional[str] = Header(None)):
     logger.info(f"[profile] PUT /settings  user={x_user_id}")
     user_id = _get_user_id(x_user_id)
-    _get_or_create_settings(user_id)
-
-    settings_fields = {
-        "theme", "notify_scan_complete", "notify_critical_vuln",
-        "notify_pr_created", "nvd_api_key", "openrouter_api_key",
-    }
-    settings_data = {
-        k: v for k, v in body.model_dump().items()
-        if k in settings_fields and v is not None
-    }
-    if settings_data:
-        settings_data["updated_at"] = datetime.now(timezone.utc).isoformat()
-        db.client.table("user_settings").update(settings_data).eq("user_id", user_id).execute()
-
-    if body.github_token is not None:
-        db.client.table("users").update({"github_token": body.github_token}).eq("id", user_id).execute()
-
+    _ensure_user_row(user_id)
+    update_data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if update_data:
+        try:
+            db.client.table("users").update(update_data).eq("id", user_id).execute()
+        except Exception as e:
+            logger.warning(f"[profile] settings update failed: {e}")
     return get_settings(request, x_user_id)
 
 
@@ -182,6 +155,8 @@ def get_notifications(request: Request, x_user_id: Optional[str] = Header(None),
     logger.info(f"[profile] GET /notifications  user={x_user_id}")
     user_id = _get_user_id(x_user_id)
     try:
+        if not db.client:
+            return NotificationsListResponse(notifications=[], unread_count=0)
         res = db.client.table("notifications") \
             .select("*") \
             .eq("user_id", user_id) \
@@ -195,8 +170,8 @@ def get_notifications(request: Request, x_user_id: Optional[str] = Header(None),
             unread_count=unread,
         )
     except Exception as e:
-        logger.error(f"[profile] notifications error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.warning(f"[profile] notifications error: {e}")
+        return NotificationsListResponse(notifications=[], unread_count=0)
 
 
 @router.post("/notifications/read")

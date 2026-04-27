@@ -98,21 +98,12 @@ async def github_webhook(request: Request, db: SupabaseDB = Depends()):
     payload = await request.json()
     
     if event_type == "push":
-        # Trigger scan on push
         repo_url = payload["repository"]["clone_url"]
-        branch = payload["ref"].split("/")[-1]
-        
-        # Find repository in database
-        repos = db.get_repositories(filters={"repo_url": repo_url})
-        if repos:
-            repo_id = repos[0]["id"]
-            # Create new scan
-            scan = db.create_scan(repo_id)
-            
-            # TODO: Implement background scanning
-            # For now, just create the scan record
-            
-            return {"status": "scan_triggered", "scan_id": scan["id"]}
+        repos = db.list_repositories()
+        matching = [r for r in repos if r.get("repo_url") == repo_url]
+        if matching:
+            scan = db.create_scan({"repo_id": matching[0]["id"], "status": "pending"})
+            return {"status": "scan_triggered", "scan_id": scan["id"] if scan else None}
     
     return {"status": "event_received", "event_type": event_type}
 
@@ -143,8 +134,9 @@ async def import_github_repos(
                 }
                 
                 # Check if already exists
-                existing = db.get_repositories(filters={"repo_url": repo["clone_url"]})
-                if not existing:
+                existing = db.list_repositories()
+                existing_urls = [r.get("repo_url") for r in existing]
+                if repo["clone_url"] not in existing_urls:
                     new_repo = db.create_repository(repo_data)
                     imported.append(new_repo)
             
