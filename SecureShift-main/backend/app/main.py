@@ -1,0 +1,80 @@
+"""
+SecureShift FastAPI Backend
+Main application entrypoint
+"""
+import sys
+import os
+
+# Add project root to path so mcp_agents is importable when running from backend/
+_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.api.routes import scans, repositories, vulnerabilities, health, github, chatbot, cves, profile, admin
+
+# Import models to ensure they're registered
+from app.models import scan, repository, vulnerability, ai_fix
+
+app = FastAPI(
+    title="SecureShift API",
+    description="Autonomous Code Security Agent Backend",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
+)
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*", "x-user-id", "X-User-Id", "Content-Type", "Authorization"],
+    expose_headers=["*"],
+)
+
+# Include routers
+app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(scans.router, prefix="/api/scans", tags=["scans"])
+app.include_router(repositories.router, prefix="/api/repositories", tags=["repositories"])
+app.include_router(vulnerabilities.router, prefix="/api/vulnerabilities", tags=["vulnerabilities"])
+app.include_router(github.router, prefix="/api/github", tags=["github"])
+app.include_router(chatbot.router, prefix="/api/chatbot", tags=["chatbot"])
+app.include_router(cves.router, prefix="/api/cves", tags=["cves"])
+app.include_router(profile.router, prefix="/api", tags=["profile"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+
+@app.get("/")
+async def root():
+    return {
+        "message": "SecureShift API",
+        "version": "1.0.0",
+        "docs": "/api/docs",
+        "status": "operational"
+    }
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    print("🚀 SecureShift API starting up...")
+    print(f"📊 Supabase URL: {settings.SUPABASE_URL}")
+    print(f"🤖 OpenRouter Model: {settings.OPENROUTER_MODEL}")
+    print(f"✅ Security Scanner: Ready")
+    print(f"✅ AI Fix Generator: Ready")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    print("👋 SecureShift API shutting down...")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )

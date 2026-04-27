@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecureShift — Presentation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cyan: #00d9ff;
+    --blue: #3a86ff;
+    --purple: #9d4edd;
+    --pink: #f72585;
+    --bg: #060914;
+    --card: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.08);
+    --text: #e0e6ff;
+    --muted: rgba(184,191,214,0.6);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── SLIDE LAYOUT ── */
+  .slide {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide + .slide { border-top: 1px solid var(--border); }
+
+  /* ── BACKGROUNDS ── */
+  .bg-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,217,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,217,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .glow-cyan  { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(0,217,255,0.12) 0%, transparent 70%); pointer-events: none; }
+  .glow-purple{ position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(157,78,221,0.12) 0%, transparent 70%); pointer-events: none; }
+  .glow-pink  { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(247,37,133,0.10) 0%, transparent 70%); pointer-events: none; }
+
+  /* ── TYPOGRAPHY ── */
+  .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 16px;
+  }
+
+  h1 { font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 800; line-height: 1.1; }
+  h2 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; line-height: 1.2; }
+  h3 { font-size: 1.2rem; font-weight: 600; }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-purple {
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p.lead {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 680px;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    backdrop-filter: blur(12px);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .card:hover {
+    border-color: rgba(0,217,255,0.2);
+    box-shadow: 0 0 30px rgba(0,217,255,0.08);
+  }
+
+  .card-grid {
+    display: grid;
+    gap: 20px;
+    width: 100%;
+    max-width: 1100px;
+    position: relative;
+    z-index: 1;
+  }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* ── ICON BADGE ── */
+  .icon-badge {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+  .badge-cyan   { background: rgba(0,217,255,0.12);  border: 1px solid rgba(0,217,255,0.2); }
+  .badge-purple { background: rgba(157,78,221,0.12); border: 1px solid rgba(157,78,221,0.2); }
+  .badge-pink   { background: rgba(247,37,133,0.12); border: 1px solid rgba(247,37,133,0.2); }
+  .badge-green  { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.2); }
+  .badge-blue   { background: rgba(58,134,255,0.12); border: 1px solid rgba(58,134,255,0.2); }
+  .badge-orange { background: rgba(255,159,28,0.12); border: 1px solid rgba(255,159,28,0.2); }
+
+  /* ── PILL TAGS ── */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .pill-cyan   { background: rgba(0,217,255,0.08);  border-color: rgba(0,217,255,0.25);  color: var(--cyan); }
+  .pill-purple { background: rgba(157,78,221,0.08); border-color: rgba(157,78,221,0.25); color: var(--purple); }
+  .pill-pink   { background: rgba(247,37,133,0.08); border-color: rgba(247,37,133,0.25); color: var(--pink); }
+  .pill-green  { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); color: #34d399; }
+  .pill-blue   { background: rgba(58,134,255,0.08); border-color: rgba(58,134,255,0.25); color: var(--blue); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .flow-step {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; text-align: center;
+    padding: 20px 16px;
+    min-width: 130px;
+  }
+  .flow-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .flow-arrow {
+    font-size: 1.4rem;
+    color: var(--cyan);
+    opacity: 0.5;
+    padding: 0 4px;
+    align-self: center;
+  }
+  .flow-label { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+  .flow-sub   { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── STAT BOXES ── */
+  .stat-box {
+    text-align: center;
+    padding: 32px 20px;
+  }
+  .stat-num {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-label { font-size: 0.85rem; color: var(--muted); }
+
+  /* ── TECH STACK ROW ── */
+  .tech-row {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center;
+    position: relative; z-index: 1;
+  }
+
+  /* ── SLIDE NAV ── */
+  .nav {
+    position: fixed;
+    right: 24px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 100;
+  }
+  .nav a {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: block;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .nav a:hover { background: var(--cyan); transform: scale(1.4); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 60px; height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+    border-radius: 999px;
+    margin: 20px auto;
+  }
+
+  /* ── CONTENT WRAPPER ── */
+  .content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+    text-align: center;
+    width: 100%; max-width: 1100px;
+  }
+
+  /* ── SLIDE NUMBER ── */
+  .slide-num {
+    position: absolute;
+    bottom: 24px; right: 32px;
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.15);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── ARCHITECTURE BOX ── */
+  .arch-layer {
+    width: 100%;
+    max-width: 900px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 24px;
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .arch-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    min-width: 90px;
+    color: var(--muted);
+  }
+  .arch-items {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+
+  /* ── SECURITY SEVERITY ── */
+  .sev-bar {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 500px;
+  }
+  .sev-label { font-size: 0.8rem; min-width: 70px; font-weight: 600; }
+  .sev-track {
+    flex: 1; height: 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .sev-fill { height: 100%; border-radius: 999px; }
+
+  /* ── QUOTE ── */
+  .quote {
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--text);
+    max-width: 700px;
+    text-align: center;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+  .quote::before { content: '"'; font-size: 4rem; color: var(--cyan); opacity: 0.3; line-height: 0; vertical-align: -0.4em; margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<!-- NAV DOTS -->
+<nav class="nav">
+  <a href="#s1" title="Title"></a>
+  <a href="#s2" title="Problem"></a>
+  <a href="#s3" title="Solution"></a>
+  <a href="#s4" title="Features"></a>
+  <a href="#s5" title="Architecture"></a>
+  <a href="#s6" title="Tech Stack"></a>
+  <a href="#s7" title="Scan Flow"></a>
+  <a href="#s8" title="AI Engine"></a>
+  <a href="#s9" title="Security"></a>
+  <a href="#s10" title="Dashboard"></a>
+  <a href="#s11" title="Stats"></a>
+  <a href="#s12" title="Closing"></a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — TITLE                                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="slide bg-grid" id="s1">
+  <div class="glow-cyan" style="top:-200px;left:-200px;"></div>
+  <div class="glow-purple" style="bottom:-200px;right:-200px;"></div>
+
+  <div class="content">
+    <div class="label">AI-Powered Code Security</div>
+
+    <h1>
+      <span style="color:white;">Secure</span><span class="gradient-text">Shift</span>
+    </h1>
+
+    <div class="divider"></div>
+
+    <p class="lead">
+      Autonomous vulnerability detection, AI-generated fixes, and one-click pull requests
+      for your GitHub repositories — all in one platform.
+    </p>
+
+    <div class="tech-row" style="margin-top:24px;">
+      <span class="pill pill-cyan">FastAPI</span>
+      <span class="pill pill-blue">SvelteKit</span>
+      <span class="pill pill-green">Supabase</span>
+      <span class="pill pill-purple">OpenRouter AI</span>
+      <span class="pill pill-pink">GitHub API</span>
+    </div>
+  </div>
+  <div class="slide-num">01 / 12</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — THE PROBLEM                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="slide bg-grid" id="s2">
+  <div class="glow-pink" style="top:-100px;right:-100px;"></div>
+
+  <div class="content">
+    <div class="label">The Problem</div>
+    <h2>Security is <span class="gradient-purple">broken</span> in most dev workflows</h2>
+    <div class="divider"></div>
+
+    <div class="card-grid grid-3" style="margin-top:16px;">
+      <div class="card">
+        <div class="icon-badge badge-pink">⚠️</div>
+        <h3>Vulnerabilities go undetected</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">
+          Most teams lack automated scanning. Security issues sit in codebases for months before discovery.
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-orange">🐌</div>
+        <h3>Fixing is slow & manual</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">
+          Developers spend hours researching CVEs and writing patches instead of shipping features.
+        </p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-purple">🔒</div>
+        <h3>No visibility for teams</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">
+          No central dashboard to track vulnerabilities, scan history, or fix status across repositories.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">02 / 12</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — THE SOLUTION                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="slide bg-grid" id="s3">
+  <div class="glow-cyan" style="bottom:-150px;left:-150px;"></div>
+
+  <div class="content">
+    <div class="label">The Solution</div>
+    <h2>One platform. <span class="gradient-text">Fully automated.</span></h2>
+    <div class="divider"></div>
+    <p class="lead">
+      SecureShift connects to your GitHub repos, scans for vulnerabilities using industry-standard tools,
+      generates AI-powered fixes, and opens a pull request — all with a single click.
+    </p>
+
+    <div class="card-grid grid-3" style="margin-top:24px;">
+      <div class="card" style="border-color:rgba(0,217,255,0.2);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🔍</div>
+        <h3 style="color:var(--cyan);">Scan</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">
+          Bandit, Safety &amp; TruffleHog scan every file for security issues, secrets, and vulnerable dependencies.
+        </p>
+      </div>
+      <div class="card" style="border-color:rgba(157,78,221,0.2);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🤖</div>
+        <h3 style="color:var(--purple);">Fix</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">
+          LLMs via OpenRouter generate context-aware code fixes with confidence scores for every vulnerability.
+        </p>
+      </div>
+      <div class="card" style="border-color:rgba(52,211,153,0.2);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🔀</div>
+        <h3 style="color:#34d399;">Ship</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">
+          Automatically applies fixes and opens a GitHub Draft PR — ready for review in seconds.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">03 / 12</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — KEY FEATURES                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="slide bg-grid" id="s4">
+  <div class="glow-purple" style="top:-100px;right:-100px;"></div>
+
+  <div class="content">
+    <div class="label">Key Features</div>
+    <h2>Everything you need to <span class="gradient-text">ship securely</span></h2>
+    <div class="divider"></div>
+
+    <div class="card-grid grid-4" style="margin-top:16px;">
+      <div class="card">
+        <div class="icon-badge badge-cyan">🔍</div>
+        <h3>Multi-tool Scanning</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">Bandit, Safety, TruffleHog running in parallel on every repo.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-purple">🤖</div>
+        <h3>AI Fix Generation</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">LLM-powered fixes with confidence scores and explanations.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-green">🔀</div>
+        <h3>One-Click PRs</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">Auto-creates GitHub Draft PRs with all fixes applied.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-blue">📊</div>
+        <h3>Admin Dashboard</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">Full platform analytics, user management, and audit logs.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-pink">🌐</div>
+        <h3>CVE Integration</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">Real-time CVE lookup via OSV.dev and NVD API.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-orange">⚡</div>
+        <h3>Real-time Updates</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">Live scan status via Supabase Realtime subscriptions.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-cyan">🔐</div>
+        <h3>RBAC</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">User, Admin, Super Admin, and Enterprise Manager roles.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-purple">🤖</div>
+        <h3>AI Help Bot</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:8px;line-height:1.5;">Built-in chatbot to guide users through the platform.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">04 / 12</div>
+</section>
+
+<!-- SLIDE 8 — AI ENGINE -->
+<section class="slide bg-grid" id="s8">
+  <div class="glow-purple" style="top:-100px;left:-100px;"></div>
+  <div class="content">
+    <div class="label">AI Engine</div>
+    <h2>Powered by <span class="gradient-purple">OpenRouter LLMs</span></h2>
+    <div class="divider"></div>
+    <div class="card-grid grid-2" style="margin-top:16px;">
+      <div class="card">
+        <div class="icon-badge badge-purple">🧠</div>
+        <h3>Model: nvidia/nemotron-3-super-120b</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">Primary model with automatic fallback to Gemini Flash, Llama 3.1, and Mistral 7B.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-cyan">📋</div>
+        <h3>Structured JSON Output</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">Returns <code style="color:var(--cyan);">suggested_fix</code>, <code style="color:var(--cyan);">fixed_code</code>, <code style="color:var(--cyan);">confidence</code>, and <code style="color:var(--cyan);">explanation</code> for every vulnerability.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-green">🛡️</div>
+        <h3>Fallback Safety Net</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">If AI fails, a placeholder fix is saved so scans always complete and PRs can still be created.</p>
+      </div>
+      <div class="card">
+        <div class="icon-badge badge-pink">🌐</div>
+        <h3>CVE Enrichment</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-top:8px;line-height:1.6;">OSV.dev batch queries + NVD 2.0 enrichment for CVSS scores, fix versions, and references.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">08 / 12</div>
+</section>
+
+<!-- SLIDE 9 — SECURITY & RBAC -->
+<section class="slide bg-grid" id="s9">
+  <div class="glow-pink" style="bottom:-100px;right:-100px;"></div>
+  <div class="content">
+    <div class="label">Security & Access Control</div>
+    <h2>Enterprise-grade <span class="gradient-text">RBAC</span></h2>
+    <div class="divider"></div>
+    <div class="card-grid grid-4" style="margin-top:16px;">
+      <div class="card" style="text-align:center;border-color:rgba(0,217,255,0.2);">
+        <div style="font-size:2rem;margin-bottom:10px;">👤</div>
+        <h3 style="color:var(--cyan);">User</h3>
+        <p style="color:var(--muted);font-size:0.82rem;margin-top:8px;line-height:1.5;">Add repos, trigger scans, view vulnerabilities and AI fixes</p>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(58,134,255,0.2);">
+        <div style="font-size:2rem;margin-bottom:10px;">🛡️</div>
+        <h3 style="color:var(--blue);">Admin</h3>
+        <p style="color:var(--muted);font-size:0.82rem;margin-top:8px;line-height:1.5;">Manage users, view all scans, access analytics and audit logs</p>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(157,78,221,0.2);">
+        <div style="font-size:2rem;margin-bottom:10px;">👑</div>
+        <h3 style="color:var(--purple);">Super Admin</h3>
+        <p style="color:var(--muted);font-size:0.82rem;margin-top:8px;line-height:1.5;">Change roles, delete users, manage system settings and API keys</p>
+      </div>
+      <div class="card" style="text-align:center;border-color:rgba(255,159,28,0.2);">
+        <div style="font-size:2rem;margin-bottom:10px;">🏢</div>
+        <h3 style="color:#ff9f1c;">Enterprise</h3>
+        <p style="color:var(--muted);font-size:0.82rem;margin-top:8px;line-height:1.5;">Organization management, team-wide security oversight</p>
+      </div>
+    </div>
+    <div class="card-grid grid-3" style="margin-top:20px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:8px;">📝</div>
+        <h3>Audit Logs</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:6px;">Every admin action logged with actor, timestamp, IP address</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:8px;">🔑</div>
+        <h3>Supabase Auth</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:6px;">JWT sessions, email verification, password reset flow</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:8px;">🗄️</div>
+        <h3>Row Level Security</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:6px;">Database-level policies protect data per user</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">09 / 12</div>
+</section>
+
+<!-- SLIDE 10 — DASHBOARD -->
+<section class="slide bg-grid" id="s10">
+  <div class="glow-cyan" style="top:-100px;right:-100px;"></div>
+  <div class="content">
+    <div class="label">User Interface</div>
+    <h2>Beautiful, <span class="gradient-text">functional</span> dashboard</h2>
+    <div class="divider"></div>
+    <div class="card-grid grid-2" style="margin-top:16px;">
+      <div class="card">
+        <h3 style="color:var(--cyan);margin-bottom:14px;">🖥️ User Dashboard</h3>
+        <ul style="color:var(--muted);font-size:0.9rem;line-height:2;list-style:none;">
+          <li>✅ Repository list with scan status</li>
+          <li>✅ Vulnerability stats with animated counters</li>
+          <li>✅ Recent activity timeline</li>
+          <li>✅ Quick actions (Add Repo, Start Scan, Reports)</li>
+          <li>✅ Notification bell with unread count</li>
+          <li>✅ Profile dropdown with settings</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--purple);margin-bottom:14px;">⚙️ Admin Dashboard</h3>
+        <ul style="color:var(--muted);font-size:0.9rem;line-height:2;list-style:none;">
+          <li>✅ Platform overview with KPI cards</li>
+          <li>✅ User management (suspend, change role)</li>
+          <li>✅ All scans & vulnerabilities view</li>
+          <li>✅ Analytics with charts (30-day trends)</li>
+          <li>✅ Audit log trail</li>
+          <li>✅ System settings (super admin only)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px;width:100%;max-width:1100px;text-align:center;">
+      <p style="color:var(--muted);font-size:0.9rem;">Dark glassmorphism UI · Aurora background animations · Fully responsive · Dark/Light theme toggle</p>
+    </div>
+  </div>
+  <div class="slide-num">10 / 12</div>
+</section>
+
+<!-- SLIDE 11 — STATS -->
+<section class="slide bg-grid" id="s11">
+  <div class="glow-purple" style="bottom:-100px;left:-100px;"></div>
+  <div class="content">
+    <div class="label">By The Numbers</div>
+    <h2>What's <span class="gradient-text">inside</span> SecureShift</h2>
+    <div class="divider"></div>
+    <div class="card-grid grid-4" style="margin-top:16px;">
+      <div class="card stat-box">
+        <div class="stat-num gradient-text">9</div>
+        <div class="stat-label">API Route Modules</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num" style="background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">8</div>
+        <div class="stat-label">Database Tables</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num" style="background:linear-gradient(135deg,#34d399,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">3</div>
+        <div class="stat-label">Security Scanners</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num gradient-text">20+</div>
+        <div class="stat-label">UI Components</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num" style="background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">4</div>
+        <div class="stat-label">User Roles</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num" style="background:linear-gradient(135deg,#34d399,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">2</div>
+        <div class="stat-label">CVE Data Sources</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num gradient-text">4</div>
+        <div class="stat-label">AI Model Fallbacks</div>
+      </div>
+      <div class="card stat-box">
+        <div class="stat-num" style="background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">∞</div>
+        <div class="stat-label">Repos You Can Scan</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">11 / 12</div>
+</section>
+
+<!-- SLIDE 12 — CLOSING -->
+<section class="slide bg-grid" id="s12">
+  <div class="glow-cyan" style="top:-200px;left:-200px;"></div>
+  <div class="glow-purple" style="bottom:-200px;right:-200px;"></div>
+  <div class="content">
+    <div class="label">SecureShift</div>
+    <h1><span style="color:white;">Secure</span><span class="gradient-text">Shift</span></h1>
+    <div class="divider"></div>
+    <p class="quote">Shift security left. Ship with confidence.</p>
+    <div class="tech-row" style="margin-top:32px;">
+      <span class="pill pill-cyan">🔍 Scan</span>
+      <span class="pill pill-purple">🤖 Fix</span>
+      <span class="pill pill-green">🔀 Ship</span>
+    </div>
+    <div class="card" style="margin-top:40px;padding:24px 40px;text-align:center;">
+      <p style="color:var(--muted);font-size:0.9rem;line-height:2;">
+        🌐 Frontend: <span style="color:var(--cyan);">http://localhost:5173</span> &nbsp;·&nbsp;
+        ⚙️ Backend: <span style="color:var(--cyan);">http://localhost:8000</span> &nbsp;·&nbsp;
+        📖 API Docs: <span style="color:var(--cyan);">http://localhost:8000/api/docs</span><br/>
+        🐙 GitHub: <span style="color:var(--cyan);">github.com/chethangowda25832-ctrl/SECURE-SHIFT</span>
+      </p>
+    </div>
+  </div>
+  <div class="slide-num">12 / 12</div>
+</section>
+
+</body>
+</html>
